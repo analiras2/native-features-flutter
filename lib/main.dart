@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:flutter/services.dart';
+import 'package:native_features/constants.dart';
 
 void main() {
   runApp(MyApp());
@@ -27,6 +30,28 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String _baterryLevel = "Unknown";
+
+  static const platform = const MethodChannel(CHANNEL_BATTERY);
+
+  Future<void> _getBatteryLevel() async {
+    String batteryLevel;
+
+    try {
+      final int result =
+          await platform.invokeMethod(CHANNEL_METHOD_BATTERY_GET);
+      batteryLevel = '${result}% Battery Level .';
+    } on PlatformException catch (e) {
+      batteryLevel = "Failed to get battery level: '${e.message}";
+    } catch (e) {
+      batteryLevel = "Error: '${e.message}";
+    }
+
+    setState(() {
+      _baterryLevel = batteryLevel;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,11 +65,12 @@ class _MyHomePageState extends State<MyHomePage> {
             Container(
               padding: EdgeInsets.only(bottom: 20),
               child: Text(
-                '58% Battery Level',
+                _baterryLevel,
                 style: TextStyle(fontSize: 24),
               ),
             ),
-            RaisedButton(child: Text('Get Battery Level'), onPressed: () {}),
+            RaisedButton(
+                child: Text('Get Battery Level'), onPressed: _getBatteryLevel),
           ],
         ),
       ),
